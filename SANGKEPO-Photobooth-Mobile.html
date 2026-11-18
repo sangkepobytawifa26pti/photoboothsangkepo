@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SANGKEPO Photobooth</title>
+<style>
+:root{--cream:#fff8e8;--paper:#fffdf6;--yellow:#ffc928;--gold:#f3b51b;--brown:#60300d;--dark:#3f260f;--green:#4f8a28;--line:#ead8a8}
+*{box-sizing:border-box}
+body{margin:0;min-width:320px;overflow-x:hidden;background:var(--cream);color:var(--dark);font-family: "Trebuchet MS",Arial,sans-serif}
+header{padding:24px 18px 12px;text-align:center}
+.brand{display:inline-flex;align-items:center;gap:12px}
+.logo{width:64px;height:64px;border-radius:50%;background:var(--yellow);border:4px solid white;box-shadow:0 3px 0 var(--brown);display:grid;place-items:center;font-size:38px}
+h1{font-size:clamp(2rem,6vw,3.5rem);line-height:1;margin:0;color:var(--yellow);-webkit-text-stroke:1.8px var(--brown);text-shadow:3px 4px 0 var(--brown);letter-spacing:1px}
+.by{font-weight:800;color:white;background:var(--brown);display:inline-block;border-radius:30px;padding:5px 20px;margin-top:8px;letter-spacing:2px}
+.tagline{margin:12px 0 0;font-weight:700;color:#80501d}
+main{width:min(1100px,94%);margin:12px auto 40px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(290px,.8fr);gap:20px}
+.panel{background:var(--paper);border:3px solid white;outline:2px solid var(--line);border-radius:28px;padding:18px;box-shadow:0 7px 0 #e9d8ad}
+.panel h2{margin:0 0 14px;color:var(--brown);font-size:1.25rem}
+.camera-wrap{position:relative;background:#38220f;border-radius:20px;overflow:hidden;aspect-ratio:4/3;display:grid;place-items:center}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#placeholder{color:#fff4d4;text-align:center;padding:25px}
+#placeholder .emoji{font-size:55px}
+#countdown{position:absolute;inset:0;display:none;place-items:center;color:white;font-size:clamp(5rem,20vw,10rem);font-weight:900;text-shadow:0 4px 20px #000}
+.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+button,.upload-label{border:0;border-radius:999px;padding:12px 18px;font-size:.95rem;font-weight:800;cursor:pointer;background:var(--yellow);color:var(--brown);box-shadow:0 3px 0 #bd7a13;transition:.15s}
+button:hover,.upload-label:hover{filter:brightness(1.04);transform:translateY(-1px)}
+button.secondary{background:#f3e6c7;box-shadow:0 3px 0 #cdbb94}
+button.green{background:#78a943;color:white;box-shadow:0 3px 0 #3d6b20}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+input[type=file]{display:none}
+.camera-controls{align-items:center}
+#photoCount{font-size:.78rem;opacity:.8;margin-left:4px}
+.upload-row{margin-top:14px;padding:12px;background:#fff4d5;border:1px dashed #d6b65e;border-radius:15px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#795a32;font-size:.88rem;font-weight:700}
+.upload-label{display:inline-flex;align-items:center;justify-content:center}
+.hint{font-size:.85rem;line-height:1.5;color:#795a32;margin:12px 2px 0}
+.side{display:flex;flex-direction:column;gap:20px}
+.preview{background:#fff7df;border:2px dashed #d6b65e;border-radius:18px;min-height:270px;padding:12px;display:flex;align-items:center;justify-content:center}
+#stripGroup{display:none;width:min(260px,100%);grid-template-columns:1fr;gap:8px;align-items:start;margin:auto}
+.ornament{position:absolute;z-index:2;pointer-events:none;font-size:clamp(23px,5vw,42px);filter:drop-shadow(1px 2px 1px #60300d33)}
+.ornament.top-left{top:7px;left:9px;transform:rotate(-22deg)}
+.ornament.top-right{top:8px;right:9px;transform:rotate(18deg)}
+.ornament.bottom-left{bottom:7px;left:10px;transform:rotate(18deg)}
+.ornament.bottom-right{bottom:7px;right:10px;transform:rotate(-20deg)}
+.photo-strip{position:relative;overflow:hidden;border:3px solid #6b350d!important;border-radius:15px;background:
+ radial-gradient(circle at 8px 8px,#f6c52d 2px,transparent 2.5px) 0 0/18px 18px,
+ linear-gradient(145deg,#fffdf3 0%,#fff4d1 100%)!important;
+ padding:13px 12px 14px!important;box-shadow:0 5px 0 #d9a82b,0 8px 18px #6b4a1b30!important}
+.photo-strip:before{content:"✦  ✿  ✦  ✿  ✦";position:absolute;top:4px;left:0;right:0;text-align:center;color:#d89b12;font-size:10px;letter-spacing:5px;z-index:1}
+.photo-strip:after{content:"✦  ✿  ✦  ✿  ✦";position:absolute;bottom:3px;left:0;right:0;text-align:center;color:#d89b12;font-size:10px;letter-spacing:5px;z-index:1}
+.photo-strip .strip-brand{position:relative;z-index:2;background:#68340f;color:#ffda45!important;border:2px solid #f4c32e;border-radius:22px;padding:7px 4px 5px;margin:9px 4px 3px!important;text-shadow:1px 2px 0 #3e210c;white-space:normal!important}
+.photo-strip .strip-by{position:relative;z-index:2;color:#754016;font-weight:900;font-size:8px!important;letter-spacing:2px!important;margin:2px 0 8px!important}
+.strip-photos{position:relative;padding:0 8px}
+.strip-photos:before,.strip-photos:after{position:absolute;top:32%;font-size:19px;z-index:2;content:"🍌";filter:drop-shadow(0 1px 1px #fff)}
+.strip-photos:before{left:-2px;transform:rotate(-28deg)}
+.strip-photos:after{right:-2px;transform:rotate(28deg)}
+.photo-strip img{position:relative;z-index:1;width:100%;aspect-ratio:4/3;object-fit:cover;margin:0 auto 8px!important;border:3px solid #fff;border-radius:9px;box-shadow:0 2px 0 #d9a52b}
+.photo-strip .strip-footer{position:relative;z-index:2;background:#fff0b5;border:2px dashed #c88b1d;border-radius:18px;padding:8px 5px;margin:8px 3px 8px!important;color:#60300d!important;font-size:clamp(7px,1.7vw,10px)!important}
+.ornament{position:absolute;z-index:3;pointer-events:none;filter:drop-shadow(0 1px 1px #fff)}
+.ornament.top-left{top:31px;left:5px;font-size:20px;transform:rotate(-20deg)}
+.ornament.top-right{top:31px;right:5px;font-size:18px;transform:rotate(20deg)}
+.ornament.bottom-left{bottom:26px;left:7px;font-size:19px;transform:rotate(15deg)}
+.ornament.bottom-right{bottom:26px;right:7px;font-size:20px;transform:rotate(-15deg)}
+.strip-mini{font-size:7px;font-weight:900;letter-spacing:2px;text-align:center;color:#7a4818;margin:3px 0 5px}
+.photo-slot-empty{width:100%;aspect-ratio:4/3;margin:0 0 5px;border:1px dashed #d8c28e;background:#fff8e8;color:#b69a61;display:grid;place-items:center;font-size:clamp(6px,1.3vw,9px);font-weight:700}
+.photo-strip{min-width:0;background:#fffdf5;padding:7px 6px 9px;box-shadow:0 4px 15px #6b4a1b2b;border:1px solid #eadfbd}
+.photo-strip .strip-brand{text-align:center;color:var(--brown);font-weight:1000;font-size:clamp(8px,2vw,13px);margin:2px 0 5px;white-space:nowrap}
+.photo-strip .strip-by{text-align:center;font-size:7px;letter-spacing:1px;margin:-3px 0 6px}
+.photo-strip img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;margin:0 0 5px}
+.photo-strip .strip-footer{text-align:center;color:var(--brown);font-size:clamp(6px,1.5vw,9px);font-weight:bold;line-height:1.25;margin-top:5px}
+#emptyPreview{text-align:center;color:#977447;font-weight:700;line-height:1.5}
+#emptyPreview span{font-size:42px;display:block}
+.note{background:#fff1c8;border-radius:16px;padding:13px;font-size:.9rem;line-height:1.5}
+footer{text-align:center;color:#8a6a3b;font-size:.8rem;padding:0 15px 28px}
+@media(max-width:760px){main{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr}.panel{padding:15px}header{padding-top:20px}}
+@media print{
+ @page{size:4in 6in;margin:0}
+ body{background:white}
+ header,main,.screen-only,footer{display:none!important}
+ #printArea{display:flex!important;justify-content:center;align-items:flex-start;width:4in;height:6in;padding:.18in;background:#fff}
+ .photo-strip{display:block!important;width:2.35in;padding:.12in .12in .15in;box-shadow:none}
+ .photo-strip .strip-brand{font-size:10pt;margin:9px 4px 3px!important}
+ .photo-strip .strip-by{font-size:6pt!important}
+ .photo-strip .strip-mini{font-size:5pt}
+ .photo-strip img{margin-bottom:.07in!important}
+ .photo-strip .strip-footer{font-size:6pt!important}
+ .photo-strip .strip-brand{font-size:8pt;margin:2px 0 5px}
+ .photo-strip .strip-by{font-size:5pt}
+ .photo-strip img{margin-bottom:.055in}
+ .photo-slot-empty{display:none}
+ .photo-strip .strip-footer{font-size:5.2pt;margin-top:5px}
+}
+#printArea{display:none}
+.qr-panel{margin-top:14px;padding:14px;border:1px dashed #d6b65e;border-radius:16px;background:#fff9e9;color:#795a32}
+.qr-panel h3{margin:0 0 6px;color:#60300d;font-size:1rem}
+.qr-panel p,.qr-panel small{font-size:.82rem;line-height:1.45}
+.qr-panel input{width:100%;padding:11px;border:1.5px solid #dfc98f;border-radius:10px;background:#fffef9;font:inherit;margin:5px 0 9px}
+#qrOutput{display:flex;justify-content:center;align-items:center;min-height:12px;margin:12px auto}
+#qrOutput img,#qrOutput canvas{background:white;padding:8px;border-radius:8px;max-width:100%}
+#downloadQrBtn{margin-top:4px}
+.editor-panel{margin-bottom:0}
+.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.edit-grid label{font-size:.82rem;font-weight:800;color:#795a32;display:flex;flex-direction:column;gap:5px}
+.edit-grid input[type=text]{width:100%;min-width:0;border:1.5px solid #dfc98f;border-radius:10px;padding:10px;background:#fffef9;color:#3f260f;font:inherit;font-size:.9rem}
+.edit-grid input[type=color]{width:100%;height:40px;border:1.5px solid #dfc98f;border-radius:10px;background:#fffef9;padding:3px}
+@media(max-width:430px){
+ .edit-grid{grid-template-columns:1fr}
+ header{padding:16px 10px 8px}
+ .brand{gap:8px}
+ .logo{width:50px;height:50px;font-size:30px}
+ h1{font-size:clamp(1.8rem,9vw,2.5rem)}
+ main{width:94%;margin:10px auto 28px;gap:14px}
+ .panel{padding:12px;border-radius:20px}
+ .controls{gap:8px}
+ .controls button,.upload-label{flex:1 1 100%;min-height:44px}
+ .camera-wrap{aspect-ratio:4/3;min-height:190px}
+ .preview{padding:8px;min-height:220px}
+ #stripGroup{width:min(260px,100%)}
+ .photo-strip{width:100%;}
+ .upload-row{align-items:stretch}
+ .upload-label{width:100%}
+ .qr-panel input{font-size:16px}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">🍌</div><div><h1 id="headerBrand">SANGKEPO</h1><div class="by" id="headerBy">by TAWIFA</div></div></div>
+  <p class="tagline" id="headerTagline">Photobooth • Stik Pisang Khas Pontianak</p>
+</header>
+<main class="screen-only">
+  <section class="panel">
+    <h2>📸 Ambil Foto Kamu</h2>
+    <div class="camera-wrap">
+      <video id="video" autoplay playsinline muted hidden></video>
+      <div id="placeholder"><div class="emoji">🍌📷</div><strong>Kamera siap?</strong><br><small>Aktifkan kamera atau unggah foto dari perangkat.</small></div>
+      <div id="countdown">3</div>
+    </div>
+    <div class="controls camera-controls">
+      <button id="startBtn" class="green">Aktifkan Kamera</button>
+      <button id="captureBtn" disabled>📸 Ambil Foto <span id="photoCount">0/3</span></button>
+      <button id="retakeBtn" class="secondary" disabled>↶ Ulang Foto Terakhir</button>
+      <button id="resetBtn" class="secondary" disabled>Hapus Semua Foto</button>
+    </div>
+    <div class="upload-row">
+      <span>Atau pilih foto dari perangkat:</span>
+      <label class="upload-label" for="upload">＋ Unggah Foto</label>
+      <input id="upload" type="file" accept="image/*">
+    </div>
+    <p class="hint">Tips: izinkan akses kamera saat diminta. Untuk mengambil foto, posisikan wajah di tengah lalu tekan “Ambil Foto”. Kamu juga bisa memilih foto dari galeri.</p>
+  </section>
+  <aside class="side">
+
+    <section class="panel">
+      <h2>✨ Hasil Photobooth</h2>
+      <div class="preview">
+        <div id="emptyPreview"><span>🌼</span>Ambil 3 foto berbeda untuk membuat satu photo strip.</div>
+        <div id="stripGroup" aria-label="Tiga photo strip"></div>
+      </div>
+      <div class="controls">
+        <button id="printBtn" class="green" disabled>🖨️ Cetak Photo Strip</button>
+        <button id="downloadBtn" class="secondary" disabled>⬇️ Download PNG</button>
+      </div>
+      <div class="qr-panel">
+        <h3>📱 QR Code untuk Download</h3>
+        <p>Masukkan tautan publik file foto agar orang lain bisa memindainya dan mengunduh hasilnya.</p>
+        <input id="qrUrl" type="url" placeholder="https://contoh.com/hasil-foto.png">
+        <button id="makeQrBtn" class="secondary" type="button">Buat QR Code</button>
+        <div id="qrOutput" aria-live="polite"></div>
+        <button id="downloadQrBtn" class="secondary" type="button" disabled>⬇️ Download QR</button>
+        <small>QR memerlukan tautan HTTPS yang bisa diakses publik. File yang hanya tersimpan di perangkat tidak bisa dibuka orang lain lewat QR.</small>
+      </div>
+    </section>
+    <div class="note"><strong>🍃 Nuansa SANGKEPO</strong><br>Warna kuning pisang, cokelat, dan cream dengan sentuhan daun hijau. Bagian varian rasa tidak digunakan agar fokus pada hasil foto dan identitas merek.</div>
+  </aside>
+</main>
+<div id="printArea"></div>
+<footer class="screen-only">SANGKEPO by TAWIFA · Photobooth</footer>
+<script>
+const video=document.getElementById('video');
+const placeholder=document.getElementById('placeholder');
+const startBtn=document.getElementById('startBtn');
+const captureBtn=document.getElementById('captureBtn');
+const upload=document.getElementById('upload');
+const retakeBtn=document.getElementById('retakeBtn');
+const resetBtn=document.getElementById('resetBtn');
+const photoCount=document.getElementById('photoCount');
+const stripGroup=document.getElementById('stripGroup');
+const emptyPreview=document.getElementById('emptyPreview');
+const printBtn=document.getElementById('printBtn');
+const downloadBtn=document.getElementById('downloadBtn');
+const countdown=document.getElementById('countdown');
+const printArea=document.getElementById('printArea');
+
+let stream=null;
+let photoUrls=[];
+const MAX_PHOTOS=3;
+const design={brand:'SANGKEPO',by:'by TAWIFA',footer:'Senyum dulu, ngemil kemudian! 🍌',paper:'#fffdf5',ink:'#60300d'};
+
+function makeStrip(photoSet){
+ const card=document.createElement('div');
+ card.className='photo-strip';
+ card.style.background=design.paper;
+ card.style.color=design.ink;
+ const safe=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ card.innerHTML=
+  '<div class="ornament top-left">🍌</div>'+
+  '<div class="ornament top-right">🍃🍌</div>'+
+  '<div class="strip-brand" style="color:'+design.ink+'">🍌 '+safe(design.brand)+' 🍌</div>'+
+  '<div class="strip-by">'+safe(design.by)+'</div>'+
+  '<div class="strip-mini">★ BANANA MOOD • HAPPY DAY ★</div>'+
+  '<div class="strip-photos"></div>'+
+  '<div class="strip-footer" style="color:'+design.ink+'">'+safe(design.footer)+'</div>'+
+  '<div class="ornament bottom-left">🍌</div>'+
+  '<div class="ornament bottom-right">🌿</div>';
+ const holder=card.querySelector('.strip-photos');
+ photoSet.forEach(src=>{
+  const img=document.createElement('img');
+  img.src=src;img.alt='Foto photobooth';holder.appendChild(img);
+ });
+ return card;
+}
+function render(){
+ stripGroup.innerHTML='';printArea.innerHTML='';
+ photoCount.textContent=photoUrls.length+'/'+MAX_PHOTOS;
+ if(photoUrls.length){
+  stripGroup.appendChild(makeStrip(photoUrls));
+  stripGroup.style.display='grid';
+  emptyPreview.style.display='none';
+ }else{
+  stripGroup.style.display='none';
+  emptyPreview.style.display='block';
+ }
+ const ready=photoUrls.length===MAX_PHOTOS;
+ captureBtn.disabled=!stream||ready;
+ retakeBtn.disabled=photoUrls.length===0;
+ resetBtn.disabled=photoUrls.length===0;
+ printBtn.disabled=!ready;
+ downloadBtn.disabled=!ready;
+ if(ready)printArea.appendChild(makeStrip(photoUrls));
+}
+async function startCamera(){
+ try{
+  if(!navigator.mediaDevices?.getUserMedia){alert('Kamera memerlukan HTTPS atau localhost. Kamu tetap bisa mengunggah foto.');return;}
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+  video.srcObject=stream;video.hidden=false;placeholder.style.display='none';
+  startBtn.textContent='Kamera Aktif';render();
+ }catch(e){alert('Kamera tidak dapat dibuka. Pastikan izin kamera diberikan atau gunakan tombol Unggah Foto.');}
+}
+startBtn.addEventListener('click',startCamera);
+function addPhoto(src){if(photoUrls.length<MAX_PHOTOS){photoUrls.push(src);render();}}
+function takePhoto(){
+ if(!stream||photoUrls.length>=MAX_PHOTOS)return;
+ let n=3;countdown.style.display='grid';countdown.textContent=n;captureBtn.disabled=true;
+ const timer=setInterval(()=>{
+  n--;
+  if(n>0){countdown.textContent=n;}
+  else{
+   clearInterval(timer);countdown.style.display='none';
+   const canvas=document.createElement('canvas');
+   canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+   const ctx=canvas.getContext('2d');
+   ctx.translate(canvas.width,0);ctx.scale(-1,1);ctx.drawImage(video,0,0);
+   addPhoto(canvas.toDataURL('image/jpeg',.92));
+  }
+ },700);
+}
+captureBtn.addEventListener('click',takePhoto);
+upload.addEventListener('change',e=>{
+ const files=Array.from(e.target.files||[]);
+ files.slice(0,MAX_PHOTOS-photoUrls.length).forEach(file=>{
+  if(!file.type.startsWith('image/'))return;
+  const reader=new FileReader();reader.onload=()=>addPhoto(reader.result);reader.readAsDataURL(file);
+ });
+ upload.value='';
+});
+retakeBtn.addEventListener('click',()=>{photoUrls.pop();render();});
+resetBtn.addEventListener('click',()=>{
+ if(confirm('Hapus semua foto dan mulai dari awal?')){photoUrls=[];render();}
+});
+printBtn.addEventListener('click',()=>{if(photoUrls.length===MAX_PHOTOS)window.print();});
+downloadBtn.addEventListener('click',async()=>{
+ if(photoUrls.length!==MAX_PHOTOS)return;
+ const strip=stripGroup.querySelector('.photo-strip');
+ if(!strip)return;
+ downloadBtn.disabled=true;
+ downloadBtn.textContent='Menyiapkan PNG...';
+ try{
+  if(!window.html2canvas)throw new Error('Fitur ekspor belum termuat. Periksa koneksi internet lalu coba lagi.');
+  // Paksa seluruh latar, gradien, border, ornamen, dan hiasan CSS ikut dirender.
+  const canvas=await html2canvas(strip,{
+   backgroundColor:'#fffdf5',
+   scale:3,
+   useCORS:true,
+   allowTaint:false,
+   logging:false,
+   removeContainer:true,
+   onclone:(clonedDoc)=>{
+    const clonedStrip=clonedDoc.querySelector('#stripGroup .photo-strip');
+    if(clonedStrip){
+     clonedStrip.style.setProperty('background-color','#fffdf5','important');
+     clonedStrip.style.setProperty('background-image','radial-gradient(circle at 8px 8px,#f6c52d 2px,transparent 2.5px) 0 0/18px 18px,linear-gradient(145deg,#fffdf3 0%,#fff4d1 100%)','important');
+     clonedStrip.style.setProperty('border','3px solid #6b350d','important');
+     clonedStrip.style.setProperty('overflow','hidden','important');
+     clonedStrip.style.setProperty('print-color-adjust','exact');
+     clonedStrip.style.setProperty('-webkit-print-color-adjust','exact');
+    }
+    clonedDoc.querySelectorAll('#stripGroup .photo-strip img').forEach(img=>{
+     img.style.setProperty('display','block','important');
+     img.style.setProperty('object-fit','cover','important');
+    });
+   }
+  });
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+  if(!blob)throw new Error('Gagal membuat file PNG.');
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='SANGKEPO-photo-strip-3-foto.png';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+ }catch(err){alert(err.message||'Gagal mengunduh foto.');}
+ finally{downloadBtn.disabled=false;downloadBtn.textContent='⬇️ Download PNG';}
+});
+
+const qrUrl=document.getElementById('qrUrl');
+const makeQrBtn=document.getElementById('makeQrBtn');
+const qrOutput=document.getElementById('qrOutput');
+const downloadQrBtn=document.getElementById('downloadQrBtn');
+makeQrBtn.addEventListener('click',()=>{
+ const value=qrUrl.value.trim();
+ qrOutput.innerHTML='';downloadQrBtn.disabled=true;
+ if(!/^https:\/\/.+/i.test(value)){alert('Masukkan tautan publik yang diawali https://');return;}
+ if(!window.QRCode){alert('Pembuat QR belum termuat. Periksa koneksi internet.');return;}
+ new QRCode(qrOutput,{text:value,width:220,height:220,colorDark:'#60300d',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+ setTimeout(()=>{downloadQrBtn.disabled=!qrOutput.querySelector('canvas, img');},300);
+});
+downloadQrBtn.addEventListener('click',()=>{
+ const canvas=qrOutput.querySelector('canvas'),img=qrOutput.querySelector('img');
+ const data=canvas?canvas.toDataURL('image/png'):img?.src;
+ if(!data)return;
+ const a=document.createElement('a');a.href=data;a.download='SANGKEPO-QR-download.png';a.click();
+});
+
+render();
+</script>
+</body>
+</html>
